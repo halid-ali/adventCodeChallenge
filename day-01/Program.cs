@@ -6,8 +6,8 @@ namespace day_01
 {
     class Program
     {
-        static IDictionary<int, int> firstMatches = new Dictionary<int,int>();
-        static IDictionary<int, Tuple<int, int>> secondMatches = new Dictionary<int,Tuple<int, int>>();
+        static IDictionary<int, int> firstMatches = new Dictionary<int, int>();
+        static IDictionary<int, Tuple<int, int>> secondMatches = new Dictionary<int, Tuple<int, int>>();
 
         static void Main(string[] args)
         {
