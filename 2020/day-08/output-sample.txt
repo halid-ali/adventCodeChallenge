@@ -1,0 +1,7 @@
+IP:0, Command: Nop +0
+IP:1, Command: Acc +1
+IP:2, Command: Jmp +4
+IP:6, Command: Acc +1
+IP:7, Command: Jmp -4
+IP:3, Command: Acc +3
+IP:4, Command: Jmp -3
