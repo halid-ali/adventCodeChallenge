@@ -6,34 +6,26 @@ namespace day_11
 {
     class Program
     {
-        static int sizeW = 0;
-        static int sizeH = 0;
-        static char[,] seatFieldForS1;
-        static char[,] seatFieldForS2;
-        static char[,] bufferField;
+        static int sizeW, sizeH;
+        static char[,] seatFieldForS1, seatFieldForS2, bufferField;
+        delegate void MyAction<T1, T2>(ref int x, ref int y);
+        delegate int MyFunc<T1, T2, T3, T4>(ref char[,] field, int i, int j);
 
         static void Main(string[] args)
         {
             CreateSeatField();
-            SolutionPartOne();
-            SolutionPartTwo();
+            Solve(GetNextSeatState, ref seatFieldForS1);
+            Solve(GetMostNextSeatState, ref seatFieldForS2);
         }
 
-        static void SolutionPartOne()
+        static void Solve(Func<int, int, char> getNextState, ref char [,] field)
         {
             int occupiedSeatCount = 0;
-            while (PlaceSeatsForS1(ref occupiedSeatCount));
-            Console.WriteLine(occupiedSeatCount);
+            while (PlaceSeats(getNextState, ref field, ref occupiedSeatCount));
+            Console.WriteLine($"The answer is {occupiedSeatCount}");
         }
 
-        static void SolutionPartTwo()
-        {
-            int occupiedSeatCount = 0;
-            while (PlaceSeatsForS2(ref occupiedSeatCount));
-            Console.WriteLine(occupiedSeatCount);
-        }
-
-        static bool PlaceSeatsForS1(ref int occupiedSeatCount)
+        static bool PlaceSeats(Func<int, int, char> getNextState, ref char [,] field, ref int occupiedSeatCount)
         {
             var hasChanges = false;
             occupiedSeatCount = 0;
@@ -43,56 +35,33 @@ namespace day_11
             {
                 for (int j = 0; j < sizeH; j++)
                 {
-                    bufferField[i, j] = GetNextSeatState(i, j);
+                    bufferField[i, j] = getNextState(i, j);
                     if(bufferField[i, j] == '#') occupiedSeatCount++;
-                    if(bufferField[i, j] != seatFieldForS1[i, j]) hasChanges = true;
+                    if(bufferField[i, j] != field[i, j]) hasChanges = true;
                 }
             }
-            seatFieldForS1 = bufferField;
-
-            return hasChanges;
-        }
-
-        static bool PlaceSeatsForS2(ref int occupiedSeatCount)
-        {
-            var hasChanges = false;
-            occupiedSeatCount = 0;
-            bufferField = new char[sizeW, sizeH];
-
-            for (int i = 0; i < sizeW; i++)
-            {
-                for (int j = 0; j < sizeH; j++)
-                {
-                    bufferField[i, j] = GetMostNextSeatState(i, j);
-                    if(bufferField[i, j] == '#') occupiedSeatCount++;
-                    if(bufferField[i, j] != seatFieldForS2[i, j]) hasChanges = true;
-                }
-            }
-            seatFieldForS2 = bufferField;
-
+            field = bufferField;
             return hasChanges;
         }
 
         static char GetNextSeatState(int i, int j)
         {
-            var occupiedAdjacentCount = 0;
-
             //check north adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i - 1, j);
+            var occupiedAdjacentCount = TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i - 1, j);
             //check south adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i + 1, j);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i + 1, j);
             //check west adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i, j - 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i, j - 1);
             //check east adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i, j + 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i, j + 1);
             //check north-west adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i - 1, j - 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i - 1, j - 1);
             //check north-east adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i - 1, j + 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i - 1, j + 1);
             //check south-west adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i + 1, j - 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i + 1, j - 1);
             //check south-east adjacent
-            occupiedAdjacentCount += TryGetAdjacentValue(i + 1, j + 1);
+            occupiedAdjacentCount += TryGetAdjacentValue(GetAdjacentForQ1, seatFieldForS1, i + 1, j + 1);
 
             if(seatFieldForS1[i, j] == 'L' && occupiedAdjacentCount == 0) return '#';
             if(seatFieldForS1[i, j] == '#' && occupiedAdjacentCount >= 4) return 'L';
@@ -101,177 +70,60 @@ namespace day_11
 
         static char GetMostNextSeatState(int i, int j)
         {
-            var occupiedAdjacentCount = 0;
-
             //check north adjacent
-            var x = i - 1;
-            var y = j;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                { 
-                    x--;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            var occupiedAdjacentCount = SkipEmptyPlaces((ref int x, ref int y) => x--, i - 1, j);
             //check south adjacent
-            x = i + 1;
-            y = j;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                { 
-                    x++;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => x++, i + 1, j);
             //check west adjacent
-            x = i;
-            y = j - 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                { 
-                    y--;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => y--, i, j - 1);
             //check east adjacent
-            x = i;
-            y = j + 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                { 
-                    y++;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => y++, i, j + 1);
             //check north-west adjacent
-            x = i - 1;
-            y = j - 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                {
-                    x--;
-                    y--;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => { x--; y--; }, i - 1, j - 1);
             //check north-east adjacent
-            x = i - 1;
-            y = j + 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                {
-                    x--;
-                    y++;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => { x--; y++; }, i - 1, j + 1);
             //check south-west adjacent
-            x = i + 1;
-            y = j - 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                {
-                    x++;
-                    y--;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
-
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => { x++; y--; }, i + 1, j - 1);
             //check south-east adjacent
-            x = i + 1;
-            y = j + 1;
-            while(true)
-            {
-                var value = TryGetMostAdjacentValue(x, y);
-                if(value == -1)
-                {
-                    x++;
-                    y++;
-                }
-                else 
-                {
-                    occupiedAdjacentCount += value;
-                    break;
-                }
-            }
+            occupiedAdjacentCount += SkipEmptyPlaces((ref int x, ref int y) => { x++; y++; }, i + 1, j + 1);
 
             if(seatFieldForS2[i, j] == 'L' && occupiedAdjacentCount == 0) return '#';
             if(seatFieldForS2[i, j] == '#' && occupiedAdjacentCount >= 5) return 'L';
             return seatFieldForS2[i, j];
         }
 
-        static int TryGetAdjacentValue(int i, int j)
+        static int SkipEmptyPlaces(MyAction<int, int> action, int i, int j)
         {
-            try
+            while(true)
             {
-                var adjacent = seatFieldForS1[i, j];
-                return adjacent == '#' ? 1 : 0;
-            }
-            catch (IndexOutOfRangeException)
-            {
-                return 0;
+                var value = TryGetAdjacentValue(GetAdjacentForQ2, seatFieldForS2, i, j);
+                if(value == -1) action(ref i, ref j);
+                else return value;
             }
         }
 
-        static int TryGetMostAdjacentValue(int i, int j)
+        static int GetAdjacentForQ1(ref char[,] fieldPad, int i, int j)
+        {
+            var adjacent = fieldPad[i, j];
+            return adjacent == '#' ? 1 : 0;
+        }
+
+        static int GetAdjacentForQ2(ref char[,] fieldPad, int i, int j)
+        {
+            var adjacent = fieldPad[i, j];
+            switch(adjacent)
+            {
+                case '#': return 1;
+                case 'L': return 0;
+                default: return -1;
+            }
+        }
+
+        static int TryGetAdjacentValue(MyFunc<char[,], int, int, int> func, char[,] field, int i, int j)
         {
             try
             {
-                var adjacent = seatFieldForS2[i, j];
-                switch(adjacent)
-                {
-                    case '#': return 1;
-                    case 'L': return 0;
-                    default: return -1;
-                }
+                return func(ref field, i, j);
             }
             catch (IndexOutOfRangeException)
             {
