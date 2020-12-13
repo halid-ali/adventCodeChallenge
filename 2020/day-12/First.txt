@@ -1,0 +1,145 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+
+namespace day_12
+{
+    class Program
+    {
+        static string currentDirection = "East";
+        static Dictionary<string, int> directions = new Dictionary<string, int>
+        {
+            {"North", 0},
+            {"South", 0},
+            {"East", 0},
+            {"West", 0}
+        };
+
+        static void Main(string[] args)
+        {
+            foreach (var input in File.ReadLines("input-question.txt"))
+            {
+                var action = input[0];
+                var value = int.Parse(input.Substring(1));
+                
+                switch (action)
+                {
+                    case 'N':
+                        directions["North"] += value;
+                        break;
+                    case 'S':
+                        directions["South"] += value;
+                        break;
+                    case 'E':
+                        directions["East"] += value;
+                        break;
+                    case 'W':
+                        directions["West"] += value;
+                        break;
+                    case 'L':
+                    case 'R':
+                        SetCurrentDirection(action, value);
+                        break;
+                    case 'F':
+                        GoForward(value);
+                        break;
+                    default: throw new ArgumentException();
+                }
+            }
+
+            var result = 0;
+            foreach (var direction in directions)
+            {
+                result += direction.Value;
+            }
+            System.Console.WriteLine(result);
+        }
+
+        static void GoForward(int value)
+        {
+            if(currentDirection == "North")
+            {
+                var result = directions["South"] - value;
+                if(result < 0) 
+                {
+                    directions["South"] = 0;
+                    directions[currentDirection] += Math.Abs(result);
+                }
+                else
+                {
+                    directions["South"] -= value;
+                }
+            }
+            else if(currentDirection == "South")
+            {
+                var result = directions["North"] - value;
+                if(result < 0) 
+                {
+                    directions["North"] = 0;
+                    directions[currentDirection] += Math.Abs(result);
+                }
+                else
+                {
+                    directions["North"] -= value;
+                }
+            }
+            else if(currentDirection == "East")
+            {
+                var result = directions["West"] - value;
+                if(result < 0) 
+                {
+                    directions["West"] = 0;
+                    directions[currentDirection] += Math.Abs(result);
+                }
+                else
+                {
+                    directions["West"] -= value;
+                }
+            }
+            else if(currentDirection == "West")
+            {
+                var result = directions["East"] - value;
+                if(result < 0) 
+                {
+                    directions["East"] = 0;
+                    directions[currentDirection] += Math.Abs(result);
+                }
+                else
+                {
+                    directions["East"] -= value;
+                }
+            }
+        }
+
+        static void SetCurrentDirection(char action, int value)
+        {
+            if(currentDirection == "North" && action == 'L' && value == 90) currentDirection = "West";
+            else if(currentDirection == "North" && action == 'L' && value == 180) currentDirection = "South";
+            else if(currentDirection == "North" && action == 'L' && value == 270) currentDirection = "East";
+            else if(currentDirection == "North" && action == 'R' && value == 90) currentDirection = "East";
+            else if(currentDirection == "North" && action == 'R' && value == 180) currentDirection = "South";
+            else if(currentDirection == "North" && action == 'R' && value == 270) currentDirection = "West";
+
+            else if(currentDirection == "South" && action == 'L' && value == 90) currentDirection = "East";
+            else if(currentDirection == "South" && action == 'L' && value == 180) currentDirection = "North";
+            else if(currentDirection == "South" && action == 'L' && value == 270) currentDirection = "West";
+            else if(currentDirection == "South" && action == 'R' && value == 90) currentDirection = "West";
+            else if(currentDirection == "South" && action == 'R' && value == 180) currentDirection = "North";
+            else if(currentDirection == "South" && action == 'R' && value == 270) currentDirection = "East";
+
+            else if(currentDirection == "East" && action == 'L' && value == 90) currentDirection = "North";
+            else if(currentDirection == "East" && action == 'L' && value == 180) currentDirection = "West";
+            else if(currentDirection == "East" && action == 'L' && value == 270) currentDirection = "South";
+            else if(currentDirection == "East" && action == 'R' && value == 90) currentDirection = "South";
+            else if(currentDirection == "East" && action == 'R' && value == 180) currentDirection = "West";
+            else if(currentDirection == "East" && action == 'R' && value == 270) currentDirection = "North";
+
+            else if(currentDirection == "West" && action == 'L' && value == 90) currentDirection = "South";
+            else if(currentDirection == "West" && action == 'L' && value == 180) currentDirection = "East";
+            else if(currentDirection == "West" && action == 'L' && value == 270) currentDirection = "North";
+            else if(currentDirection == "West" && action == 'R' && value == 90) currentDirection = "North";
+            else if(currentDirection == "West" && action == 'R' && value == 180) currentDirection = "East";
+            else if(currentDirection == "West" && action == 'R' && value == 270) currentDirection = "South";
+        }
+    }
+}
